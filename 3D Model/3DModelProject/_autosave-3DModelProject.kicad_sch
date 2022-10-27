@@ -2575,7 +2575,7 @@
   (symbol (lib_id "Regulator_Linear:LP5907MFX-3.3") (at 190.5 27.94 0) (unit 1)
     (in_bom yes) (on_board yes) (fields_autoplaced)
     (uuid c4e3f7f4-8d53-46fd-b919-c9ccc72b8301)
-    (property "Reference" "U?" (id 0) (at 190.5 19.1602 0))
+    (property "Reference" "U4" (id 0) (at 190.5 19.1602 0))
     (property "Value" "LP5907MFX-3.3" (id 1) (at 190.5 21.6971 0))
     (property "Footprint" "Package_TO_SOT_SMD:SOT-23-5" (id 2) (at 190.5 19.05 0)
       (effects (font (size 1.27 1.27)) hide)
@@ -2795,14 +2795,14 @@
     (path "/f9b70722-e81d-4560-87a9-e1438727014c"
       (reference "U3") (unit 1) (value "ICM-20602") (footprint "Package_LGA:LGA-16_3x3mm_P0.5mm_LayoutBorder3x5y")
     )
+    (path "/c4e3f7f4-8d53-46fd-b919-c9ccc72b8301"
+      (reference "U4") (unit 1) (value "LP5907MFX-3.3") (footprint "Package_TO_SOT_SMD:SOT-23-5")
+    )
     (path "/9129be61-c293-426e-8253-da17ff12f65c"
       (reference "U5") (unit 1) (value "USB3341") (footprint "Package_DFN_QFN:QFN-24-1EP_4x4mm_P0.5mm_EP2.6x2.6mm")
     )
     (path "/5ad92e34-179f-4bab-abeb-83ca78cf4b25"
       (reference "U6") (unit 1) (value "TPD2EUSB30A") (footprint "Package_TO_SOT_SMD:Texas_DRT-3")
-    )
-    (path "/c4e3f7f4-8d53-46fd-b919-c9ccc72b8301"
-      (reference "U?") (unit 1) (value "LP5907MFX-3.3") (footprint "Package_TO_SOT_SMD:SOT-23-5")
     )
   )
 )
