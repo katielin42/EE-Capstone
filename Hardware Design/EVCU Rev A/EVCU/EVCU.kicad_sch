@@ -4,6 +4,13 @@
 
   (paper "A2")
 
+  (title_block
+    (title "Electric Vehicle Control Unit")
+    (date "2022-11-18")
+    (rev "A")
+    (company "University of Alberta Formula Racing")
+  )
+
   (lib_symbols
     (symbol "Amplifier_Operational:LM358" (pin_names (offset 0.127)) (in_bom yes) (on_board yes)
       (property "Reference" "U" (id 0) (at 0 5.08 0)
@@ -3978,7 +3985,7 @@
     (effects (font (size 3 3)) (justify left bottom))
     (uuid 850ee71b-4d39-4f27-9795-848dfc2d5721)
   )
-  (text "Accelerator Pedal Position Sensor" (at 439.42 170.18 0)
+  (text "APPS\n" (at 439.42 170.18 0)
     (effects (font (size 3 3)) (justify left bottom))
     (uuid 8e5bbfd2-bc8c-44b6-8272-73a7f74354a1)
   )
