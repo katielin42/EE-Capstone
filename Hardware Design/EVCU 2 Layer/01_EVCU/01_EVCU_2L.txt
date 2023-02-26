@@ -10,3 +10,4 @@ Number of Board layers: 2
 Board Size: 3.42x3.16 inches
 
 Special Instructions: lead free HASL
+		      JLCPCB stencil
