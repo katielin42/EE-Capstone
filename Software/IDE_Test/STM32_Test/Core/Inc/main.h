@@ -217,8 +217,6 @@ void Error_Handler(void);
 #define D15_GPIO_Port GPIOD
 #define ARD_A2_Pin GPIO_PIN_3
 #define ARD_A2_GPIO_Port GPIOC
-#define ARD_A4_Pin GPIO_PIN_0
-#define ARD_A4_GPIO_Port GPIOA
 #define ARD_A1_Pin GPIO_PIN_4
 #define ARD_A1_GPIO_Port GPIOC
 #define PSRAM_A9_Pin GPIO_PIN_15
@@ -247,8 +245,6 @@ void Error_Handler(void);
 #define DCMI_PIXCLK_GPIO_Port GPIOH
 #define SPI_MOSI_Pin GPIO_PIN_15
 #define SPI_MOSI_GPIO_Port GPIOB
-#define ARD_D5_Pin GPIO_PIN_1
-#define ARD_D5_GPIO_Port GPIOA
 #define USART2_RX_Pin GPIO_PIN_3
 #define USART2_RX_GPIO_Port GPIOA
 #define ARD_A0_Pin GPIO_PIN_7
@@ -265,8 +261,6 @@ void Error_Handler(void);
 #define DCMI_D2_GPIO_Port GPIOH
 #define SPI2_MISO_Pin GPIO_PIN_14
 #define SPI2_MISO_GPIO_Port GPIOB
-#define USART2_TX_Pin GPIO_PIN_2
-#define USART2_TX_GPIO_Port GPIOA
 #define DCMI_HSYNC_Pin GPIO_PIN_4
 #define DCMI_HSYNC_GPIO_Port GPIOA
 #define ARD_A3_Pin GPIO_PIN_0
