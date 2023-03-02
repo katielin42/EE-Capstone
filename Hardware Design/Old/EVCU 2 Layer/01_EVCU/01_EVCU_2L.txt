@@ -1,0 +1,13 @@
+Contact Name: Thomas Osei-Bonsu Jr.
+Contact Email: toseibon@ualberta.ca
+Group Number: 01
+Course: ECE 491
+
+Board Manufacturing Method: professional
+Number of Board of this Design to be produced: 5 (JLC PCB Minimum)
+
+Number of Board layers: 2
+Board Size: 3.42x3.16 inches
+
+Special Instructions: lead free HASL
+		      JLCPCB stencil
