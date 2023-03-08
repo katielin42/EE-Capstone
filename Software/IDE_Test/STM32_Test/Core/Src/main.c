@@ -28,6 +28,7 @@
 
 /* Private typedef -----------------------------------------------------------*/
 typedef StaticSemaphore_t osStaticMutexDef_t;
+typedef StaticSemaphore_t osStaticSemaphoreDef_t;
 /* USER CODE BEGIN PTD */
 
 /* USER CODE END PTD */
@@ -38,11 +39,16 @@ typedef StaticSemaphore_t osStaticMutexDef_t;
 
 /* Private macro -------------------------------------------------------------*/
 /* USER CODE BEGIN PM */
+///user defined variables///
+static uint16_t ADC_buffer_raw[9];
+static uint16_t ADC_buffer_processed[3];
+
 
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
 ADC_HandleTypeDef hadc1;
+DMA_HandleTypeDef hdma_adc1;
 
 CAN_HandleTypeDef hcan1;
 
@@ -55,7 +61,12 @@ SPI_HandleTypeDef hspi2;
 SRAM_HandleTypeDef hsram1;
 
 /* Definitions for defaultTask */
-
+osThreadId_t defaultTaskHandle;
+const osThreadAttr_t defaultTask_attributes = {
+  .name = "defaultTask",
+  .stack_size = 128 * 4,
+  .priority = (osPriority_t) osPriorityNormal,
+};
 /* Definitions for myMutex01 */
 osMutexId_t myMutex01Handle;
 osStaticMutexDef_t myMutex01ControlBlock;
@@ -63,6 +74,14 @@ const osMutexAttr_t myMutex01_attributes = {
   .name = "myMutex01",
   .cb_mem = &myMutex01ControlBlock,
   .cb_size = sizeof(myMutex01ControlBlock),
+};
+/* Definitions for ADC_sem */
+osSemaphoreId_t ADC_semHandle;
+osStaticSemaphoreDef_t ADC_sem_ctrl_blk;
+const osSemaphoreAttr_t ADC_sem_attributes = {
+  .name = "ADC_sem",
+  .cb_mem = &ADC_sem_ctrl_blk,
+  .cb_size = sizeof(ADC_sem_ctrl_blk),
 };
 /* USER CODE BEGIN PV */
 
@@ -74,17 +93,18 @@ const osThreadAttr_t thr_1_attributes = {
   .stack_size = 128 * 4,
   .priority = (osPriority_t) osPriorityNormal,
 };
-osThreadId_t thr_2;
-const osThreadAttr_t thr_2_attributes = {
-  .name = "defaultTask",
-  .stack_size = 128 * 4,
-  .priority = (osPriority_t) osPriorityNormal,
-};
+//osThreadId_t thr_2;
+//const osThreadAttr_t thr_2_attributes = {
+//  .name = "defaultTask",
+//  .stack_size = 128 * 4,
+//  .priority = (osPriority_t) osPriorityNormal,
+//};
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
+static void MX_DMA_Init(void);
 static void MX_FMC_Init(void);
 static void MX_I2C1_Init(void);
 static void MX_SDMMC1_SD_Init(void);
@@ -94,7 +114,7 @@ static void MX_ADC1_Init(void);
 void StartDefaultTask(void *argument);
 
 /* USER CODE BEGIN PFP */
-
+void ADC_collect(void *argument);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -130,6 +150,7 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+  MX_DMA_Init();
   MX_FMC_Init();
   MX_I2C1_Init();
   MX_SDMMC1_SD_Init();
@@ -151,6 +172,10 @@ int main(void)
   /* add mutexes, ... */
   /* USER CODE END RTOS_MUTEX */
 
+  /* Create the semaphores(s) */
+  /* creation of ADC_sem */
+  ADC_semHandle = osSemaphoreNew(1, 1, &ADC_sem_attributes);
+
   /* USER CODE BEGIN RTOS_SEMAPHORES */
   /* add semaphores, ... */
   /* USER CODE END RTOS_SEMAPHORES */
@@ -165,11 +190,11 @@ int main(void)
 
   /* Create the thread(s) */
   /* creation of defaultTask */
+  defaultTaskHandle = osThreadNew(StartDefaultTask, NULL, &defaultTask_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
-  thr_1 = osThreadNew(ADC_collect, NULL, &thr_1_attributes);
-  thr_2 = osThreadNew(ADC_collect, NULL, &thr_2_attributes);
+  thr_1 = osThreadNew(ADC_collect, &hadc1, &thr_1_attributes);
   /* USER CODE END RTOS_THREADS */
 
   /* USER CODE BEGIN RTOS_EVENTS */
@@ -263,15 +288,15 @@ static void MX_ADC1_Init(void)
   hadc1.Init.ClockPrescaler = ADC_CLOCK_ASYNC_DIV1;
   hadc1.Init.Resolution = ADC_RESOLUTION_12B;
   hadc1.Init.DataAlign = ADC_DATAALIGN_RIGHT;
-  hadc1.Init.ScanConvMode = ADC_SCAN_DISABLE;
+  hadc1.Init.ScanConvMode = ADC_SCAN_ENABLE;
   hadc1.Init.EOCSelection = ADC_EOC_SINGLE_CONV;
   hadc1.Init.LowPowerAutoWait = DISABLE;
   hadc1.Init.ContinuousConvMode = DISABLE;
-  hadc1.Init.NbrOfConversion = 1;
+  hadc1.Init.NbrOfConversion = 3;
   hadc1.Init.DiscontinuousConvMode = DISABLE;
   hadc1.Init.ExternalTrigConv = ADC_SOFTWARE_START;
   hadc1.Init.ExternalTrigConvEdge = ADC_EXTERNALTRIGCONVEDGE_NONE;
-  hadc1.Init.DMAContinuousRequests = DISABLE;
+  hadc1.Init.DMAContinuousRequests = ENABLE;
   hadc1.Init.Overrun = ADC_OVR_DATA_PRESERVED;
   hadc1.Init.OversamplingMode = DISABLE;
   hadc1.Init.DFSDMConfig = ADC_DFSDM_MODE_ENABLE;
@@ -282,12 +307,30 @@ static void MX_ADC1_Init(void)
 
   /** Configure Regular Channel
   */
-  sConfig.Channel = ADC_CHANNEL_6;
+  sConfig.Channel = ADC_CHANNEL_5;
   sConfig.Rank = ADC_REGULAR_RANK_1;
   sConfig.SamplingTime = ADC_SAMPLETIME_2CYCLES_5;
   sConfig.SingleDiff = ADC_SINGLE_ENDED;
   sConfig.OffsetNumber = ADC_OFFSET_NONE;
   sConfig.Offset = 0;
+  if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /** Configure Regular Channel
+  */
+  sConfig.Channel = ADC_CHANNEL_6;
+  sConfig.Rank = ADC_REGULAR_RANK_2;
+  if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /** Configure Regular Channel
+  */
+  sConfig.Channel = ADC_CHANNEL_7;
+  sConfig.Rank = ADC_REGULAR_RANK_3;
   if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
   {
     Error_Handler();
@@ -448,6 +491,23 @@ static void MX_SPI2_Init(void)
   /* USER CODE BEGIN SPI2_Init 2 */
 
   /* USER CODE END SPI2_Init 2 */
+
+}
+
+/**
+  * Enable DMA controller clock
+  */
+static void MX_DMA_Init(void)
+{
+
+  /* DMA controller clock enable */
+  __HAL_RCC_DMAMUX1_CLK_ENABLE();
+  __HAL_RCC_DMA1_CLK_ENABLE();
+
+  /* DMA interrupt init */
+  /* DMA1_Channel1_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Channel1_IRQn, 5, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Channel1_IRQn);
 
 }
 
@@ -742,6 +802,29 @@ static void MX_GPIO_Init(void)
 
 /* USER CODE BEGIN 4 */
 
+void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc){
+	// ADC averaging
+	for(int i = 0 ; i < 3; i++) {
+		ADC_buffer_processed[i] = (ADC_buffer_raw[0 + i] + ADC_buffer_raw[3 + i] + ADC_buffer_raw[6 + i])/3;
+	}
+	osSemaphoreRelease(ADC_semHandle);
+
+}
+void ADC_collect(void *argument)
+{
+	ADC_HandleTypeDef *hadc = argument;
+  /* Infinite loop */
+	HAL_ADC_Start_DMA(hadc, (uint32_t*)ADC_buffer_raw, 9);
+  for(;;)
+  {
+	  osSemaphoreAcquire(ADC_semHandle, osWaitForever);
+	  // process adc buffer good
+    osDelay(1);
+  }
+}
+
+
+
 /* USER CODE END 4 */
 
 /* USER CODE BEGIN Header_StartDefaultTask */
@@ -750,12 +833,10 @@ static void MX_GPIO_Init(void)
   * @param  argument: Not used
   * @retval None
   */
-/* Function for threads to collect from ADC */
-void ADC_collect(void *argument)
+/* USER CODE END Header_StartDefaultTask */
+void StartDefaultTask(void *argument)
 {
   /* USER CODE BEGIN 5 */
-  /* Infinite loop */
-
   for(;;)
   {
     osDelay(1);
