@@ -77,8 +77,6 @@ void Error_Handler(void);
 #define ARD_10_GPIO_Port GPIOI
 #define DSI_SPI_USART_CS_Pin GPIO_PIN_14
 #define DSI_SPI_USART_CS_GPIO_Port GPIOH
-#define OCTOSPIM_P2_IO2_Pin GPIO_PIN_9
-#define OCTOSPIM_P2_IO2_GPIO_Port GPIOI
 #define DCMI_D7_Pin GPIO_PIN_7
 #define DCMI_D7_GPIO_Port GPIOI
 #define PSRAM_NBL1_Pin GPIO_PIN_1
@@ -231,8 +229,6 @@ void Error_Handler(void);
 #define D14_GPIO_Port GPIOD
 #define D13_Pin GPIO_PIN_8
 #define D13_GPIO_Port GPIOD
-#define STMOD_PWM_Pin GPIO_PIN_5
-#define STMOD_PWM_GPIO_Port GPIOA
 #define SPI2_CS_Pin GPIO_PIN_6
 #define SPI2_CS_GPIO_Port GPIOA
 #define PSRAM_A8_Pin GPIO_PIN_14
