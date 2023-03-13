@@ -23,6 +23,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "adc_task.h"
 
 /* USER CODE END Includes */
 
@@ -40,8 +41,7 @@ typedef StaticSemaphore_t osStaticSemaphoreDef_t;
 /* Private macro -------------------------------------------------------------*/
 /* USER CODE BEGIN PM */
 ///user defined variables///
-static uint16_t ADC_buffer_raw[9];
-static uint16_t ADC_buffer_processed[3];
+
 
 
 /* USER CODE END PM */
@@ -76,23 +76,11 @@ const osMutexAttr_t myMutex01_attributes = {
   .cb_size = sizeof(myMutex01ControlBlock),
 };
 /* Definitions for ADC_sem */
-osSemaphoreId_t ADC_semHandle;
-osStaticSemaphoreDef_t ADC_sem_ctrl_blk;
-const osSemaphoreAttr_t ADC_sem_attributes = {
-  .name = "ADC_sem",
-  .cb_mem = &ADC_sem_ctrl_blk,
-  .cb_size = sizeof(ADC_sem_ctrl_blk),
-};
 /* USER CODE BEGIN PV */
 
 /* Definitions for myMutex01 */
 /* Definitions for threads */
-osThreadId_t thr_1;
-const osThreadAttr_t thr_1_attributes = {
-  .name = "defaultTask",
-  .stack_size = 128 * 4,
-  .priority = (osPriority_t) osPriorityNormal,
-};
+
 //osThreadId_t thr_2;
 //const osThreadAttr_t thr_2_attributes = {
 //  .name = "defaultTask",
@@ -114,7 +102,6 @@ static void MX_ADC1_Init(void);
 void StartDefaultTask(void *argument);
 
 /* USER CODE BEGIN PFP */
-void ADC_collect(void *argument);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -194,7 +181,7 @@ int main(void)
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
-  thr_1 = osThreadNew(ADC_collect, &hadc1, &thr_1_attributes);
+  ADC_init();
   /* USER CODE END RTOS_THREADS */
 
   /* USER CODE BEGIN RTOS_EVENTS */
@@ -802,26 +789,7 @@ static void MX_GPIO_Init(void)
 
 /* USER CODE BEGIN 4 */
 
-void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc){
-	// ADC averaging
-	for(int i = 0 ; i < 3; i++) {
-		ADC_buffer_processed[i] = (ADC_buffer_raw[0 + i] + ADC_buffer_raw[3 + i] + ADC_buffer_raw[6 + i])/3;
-	}
-	osSemaphoreRelease(ADC_semHandle);
 
-}
-void ADC_collect(void *argument)
-{
-	ADC_HandleTypeDef *hadc = argument;
-  /* Infinite loop */
-	HAL_ADC_Start_DMA(hadc, (uint32_t*)ADC_buffer_raw, 9);
-  for(;;)
-  {
-	  osSemaphoreAcquire(ADC_semHandle, osWaitForever);
-	  // process adc buffer good
-    osDelay(1);
-  }
-}
 
 
 
