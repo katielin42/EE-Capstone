@@ -277,7 +277,7 @@ void Error_Handler(void);
 #define SPI2_CLK_GPIO_Port GPIOB
 
 /* USER CODE BEGIN Private defines */
-
+extern ADC_HandleTypeDef hadc1;
 /* USER CODE END Private defines */
 
 #ifdef __cplusplus

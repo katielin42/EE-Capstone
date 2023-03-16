@@ -24,7 +24,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "adc_task.h"
-
+#include "sd_task.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -161,7 +161,7 @@ int main(void)
 
   /* Create the semaphores(s) */
   /* creation of ADC_sem */
-  ADC_semHandle = osSemaphoreNew(1, 1, &ADC_sem_attributes);
+//  ADC_semHandle = osSemaphoreNew(1, 1, &ADC_sem_attributes);
 
   /* USER CODE BEGIN RTOS_SEMAPHORES */
   /* add semaphores, ... */
@@ -181,7 +181,7 @@ int main(void)
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
-  ADC_init();
+  ADC_Init();
   /* USER CODE END RTOS_THREADS */
 
   /* USER CODE BEGIN RTOS_EVENTS */

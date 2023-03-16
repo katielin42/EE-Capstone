@@ -12,6 +12,8 @@
 static uint16_t ADC_buffer_raw[9];
 static uint16_t ADC_buffer_processed[3];
 osSemaphoreId_t ADC_semHandle;
+typedef StaticSemaphore_t osStaticSemaphoreDef_t;
+
 osStaticSemaphoreDef_t ADC_sem_ctrl_blk;
 const osSemaphoreAttr_t ADC_sem_attributes = {
   .name = "ADC_sem",
