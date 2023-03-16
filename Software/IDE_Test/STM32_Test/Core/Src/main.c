@@ -189,6 +189,8 @@ int main(void)
   /* USER CODE END RTOS_EVENTS */
 
   /* Start scheduler */
+  //please note that anything after this oskernalstart function is not gonna run. If you want to create y
+  //your own functions, you need to create another .c and .h file as shown.
   osKernelStart();
 
   /* We should never get here as control is now taken by the scheduler */

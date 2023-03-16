@@ -22,6 +22,7 @@ const osSemaphoreAttr_t ADC_sem_attributes = {
 
 /* Definitions for myMutex01 */
 /* Definitions for threads */
+// Start a new thread for ADC signal processing
 osThreadId_t thr_1;
 const osThreadAttr_t thr_1_attributes = {
   .name = "defaultTask",
@@ -29,12 +30,16 @@ const osThreadAttr_t thr_1_attributes = {
   .priority = (osPriority_t) osPriorityNormal,
 };
 
+//initialize ADC thread
 void ADC_Init(void) {
 	ADC_semHandle = osSemaphoreNew(1, 1, &ADC_sem_attributes);
 	thr_1 = osThreadNew(ADC_collect, &hadc1, &thr_1_attributes);
 
 }
 
+//since ADC 1 has 3 pins we are getting data from, our adc buffer raw has space for 9 values
+//aka 3x of adc pins.
+//We average out the 3 ADC values for each pin
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc){
 	// ADC averaging
 	for(int i = 0 ; i < 3; i++) {
@@ -43,6 +48,7 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc){
 	osSemaphoreRelease(ADC_semHandle);
 }
 
+//collect raw adc data through the DMA
 void ADC_collect(void *argument)
 {
 	ADC_HandleTypeDef *hadc = argument;
@@ -52,6 +58,7 @@ void ADC_collect(void *argument)
   {
 	  osSemaphoreAcquire(ADC_semHandle, osWaitForever);
 	  // process adc buffer good
+
     osDelay(1);
   }
 }
