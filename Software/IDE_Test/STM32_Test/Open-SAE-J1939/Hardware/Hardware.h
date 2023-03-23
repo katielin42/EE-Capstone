@@ -15,8 +15,8 @@
 #define AVR 4
 #define QT_USB 5
 #define INTERNAL_CALLBACK 6
-#define PROCESSOR_CHOICE 0
-
+//#define PROCESSOR_CHOICE 0
+#define PROCESSOR_CHOICE STM32
 /* C Standard library */
 #include "../Open_SAE_J1939/C89_Library.h"
 
