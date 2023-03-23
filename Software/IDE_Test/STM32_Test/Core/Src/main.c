@@ -20,9 +20,9 @@
 #include "main.h"
 #include "cmsis_os.h"
 #include "fatfs.h"
-
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "controller_task.h"
 #include "adc_task.h"
 #include "sd_task.h"
 /* USER CODE END Includes */
@@ -67,14 +67,7 @@ const osThreadAttr_t defaultTask_attributes = {
   .stack_size = 128 * 4,
   .priority = (osPriority_t) osPriorityNormal,
 };
-/* Definitions for myMutex01 */
-osMutexId_t myMutex01Handle;
-osStaticMutexDef_t myMutex01ControlBlock;
-const osMutexAttr_t myMutex01_attributes = {
-  .name = "myMutex01",
-  .cb_mem = &myMutex01ControlBlock,
-  .cb_size = sizeof(myMutex01ControlBlock),
-};
+
 /* Definitions for ADC_sem */
 /* USER CODE BEGIN PV */
 
@@ -152,8 +145,7 @@ int main(void)
   /* Init scheduler */
   osKernelInitialize();
   /* Create the mutex(es) */
-  /* creation of myMutex01 */
-  myMutex01Handle = osMutexNew(&myMutex01_attributes);
+
 
   /* USER CODE BEGIN RTOS_MUTEX */
   /* add mutexes, ... */
@@ -181,9 +173,9 @@ int main(void)
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
-  ADC_Init();
+  ADC_Init(&hadc1);
+  controller_init();
   /* USER CODE END RTOS_THREADS */
-
   /* USER CODE BEGIN RTOS_EVENTS */
   /* add events, ... */
   /* USER CODE END RTOS_EVENTS */

@@ -7,7 +7,6 @@
 
 #ifndef INC_CONTROLLER_TASK_H_
 #define INC_CONTROLLER_TASK_H_
-
-
+void controller_init(void);
 
 #endif /* INC_CONTROLLER_TASK_H_ */

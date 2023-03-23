@@ -7,8 +7,7 @@
 
 #ifndef INC_ADC_TASK_H_
 #define INC_ADC_TASK_H_
-
-void ADC_collect(void *argument);
-void ADC_Init(void);
+void ADC_Init(ADC_HandleTypeDef *argument);
+extern osSemaphoreId_t ADC_semHandle;
 
 #endif /* INC_ADC_TASK_H_ */
