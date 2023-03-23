@@ -7,7 +7,7 @@
 #include "main.h"
 #include "cmsis_os.h"
 #include "fatfs.h"
-#include "Open_SAE_J1939/Open_SAE_J1939.h"
+#include "../../Open-SAE-J1939/Open_SAE_J1939/Open_SAE_J1939.h"
 
 uint8_t addressIndex;
 uint32_t motorTemp_ID = 0x18FEA4FE;
