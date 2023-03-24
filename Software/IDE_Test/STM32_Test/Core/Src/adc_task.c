@@ -4,6 +4,7 @@
  *  Created on: Mar 9, 2023
  *      Author: kate
  */
+///adasdas///
 #include "main.h"
 #include "cmsis_os.h"
 #include "fatfs.h"
@@ -55,6 +56,7 @@ void ADC_collect(void *argument)
 {
 	ADC_HandleTypeDef *hadc = argument;
   /* Infinite loop */
+	memset(ADC_buffer_raw, 0, sizeof(ADC_buffer_raw));
 	HAL_ADC_Start_DMA(hadc, (uint32_t*)ADC_buffer_raw, 9);
   for(;;)
   {
