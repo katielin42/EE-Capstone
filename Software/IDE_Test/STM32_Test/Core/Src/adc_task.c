@@ -11,9 +11,13 @@
 #include "adc_task.h"
 
 static uint16_t ADC_buffer_raw[9];
-static uint16_t ADC_buffer_processed[3];
+static float ADC_buffer_processed[3];
 osSemaphoreId_t ADC_semHandle;
 typedef StaticSemaphore_t osStaticSemaphoreDef_t;
+//analog values from adc bit sample = (VREF-GND)*ADC_bits/4095
+float VREF = 3.3;
+int GND = 0;
+int ADC_RESO_BIT = 4095;
 
 osStaticSemaphoreDef_t ADC_sem_ctrl_blk;
 const osSemaphoreAttr_t ADC_sem_attributes = {
@@ -34,30 +38,30 @@ const osThreadAttr_t thr_1_attributes = {
 };
 
 //initialize ADC thread
-void ADC_Init(void) {
+void ADC_Init(void *argument) {
+	ADC_HandleTypeDef *hadc = argument;
 	ADC_semHandle = osSemaphoreNew(1, 1, &ADC_sem_attributes);
 	thr_1 = osThreadNew(ADC_collect, &hadc1, &thr_1_attributes);
-
+	HAL_ADC_Start_DMA(hadc, (uint32_t*)ADC_buffer_raw, 9);
 }
 
 //since ADC 1 has 3 pins we are getting data from, our adc buffer raw has space for 9 values
 //aka 3x of adc pins.
 //We average out the 3 ADC values for each pin
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc){
-	// ADC averaging
+	// average the ADC values from 3 consecutive samples and convert them into the analog values with the formula (VREF-GND)/ADC_BIT_RESOLUTION
 	for(int i = 0 ; i < 3; i++) {
-		ADC_buffer_processed[i] = (ADC_buffer_raw[0 + i] + ADC_buffer_raw[3 + i] + ADC_buffer_raw[6 + i])/3;
+		ADC_buffer_processed[i] = ((VREF-GND)/ADC_RESO_BIT)*((float)ADC_buffer_raw[0 + i] + ADC_buffer_raw[3 + i] + ADC_buffer_raw[6 + i])/3;
 	}
 	osSemaphoreRelease(ADC_semHandle);
 }
 
 //collect raw adc data through the DMA
-void ADC_collect(void *argument)
+void ADC_collect(void)
 {
-	ADC_HandleTypeDef *hadc = argument;
+
   /* Infinite loop */
-	memset(ADC_buffer_raw, 0, sizeof(ADC_buffer_raw));
-	HAL_ADC_Start_DMA(hadc, (uint32_t*)ADC_buffer_raw, 9);
+//	memset(ADC_buffer_raw, 0, sizeof(ADC_buffer_raw));
   for(;;)
   {
 	  osSemaphoreAcquire(ADC_semHandle, osWaitForever);
