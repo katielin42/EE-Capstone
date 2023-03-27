@@ -3,7 +3,7 @@
 #include "fatfs.h"
 #include "adc_task.h"
 //#include "can_task.h"
-//#include "sd_task.h"
+#include "sd_task.h"
 
 
 
@@ -19,8 +19,9 @@ const osThreadAttr_t thr_1_attributes = {
 
 
 //define variables
+char yourmom[] = "yourmom";
+float ADC_P0 = 0;
 
-float pp = 0;
 
 void controller_state_machine(void *args);
 
@@ -31,11 +32,16 @@ void state_machine_init(void){
 }
 
 void controller_state_machine(void *args){
-		pp=ADC_buffer_processed[0];
+	ADC_P0=ADC_buffer_processed[0];
+	SD_process(yourmom, &ADC_P0, 1);
 	  for(;;)
 	  {
 		  osSemaphoreAcquire(ADC_semHandle, 1);
+
+
 	    osDelay(1);
 	  }
+	  // State transition if/else logic
+
 
 }

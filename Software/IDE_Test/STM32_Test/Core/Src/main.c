@@ -156,16 +156,18 @@ int main(void)
 
   /* USER CODE BEGIN RTOS_QUEUES */
   /* add queues, ... */
+
   /* USER CODE END RTOS_QUEUES */
 
   /* Create the thread(s) */
   /* creation of defaultTask */
-  defaultTaskHandle = osThreadNew(StartDefaultTask, NULL, &defaultTask_attributes);
+
+  defaultTaskHandle = osThreadNew(SD_init, NULL, &defaultTask_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
   ADC_Init(&hadc1);
-  //SD_init();
+
   state_machine_init();
   /* USER CODE END RTOS_THREADS */
 
@@ -175,7 +177,7 @@ int main(void)
 
   /* Start scheduler */
   osKernelStart();
-
+  SD_init();
   /* We should never get here as control is now taken by the scheduler */
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
