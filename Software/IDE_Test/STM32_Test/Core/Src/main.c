@@ -25,6 +25,7 @@
 /* USER CODE BEGIN Includes */
 #include "adc_task.h"
 #include "sd_task.h"
+#include "controller_task.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -164,6 +165,8 @@ int main(void)
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
   ADC_Init(&hadc1);
+  //SD_init();
+  state_machine_init();
   /* USER CODE END RTOS_THREADS */
 
   /* USER CODE BEGIN RTOS_EVENTS */
