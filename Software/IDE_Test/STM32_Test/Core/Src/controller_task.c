@@ -19,7 +19,7 @@ const osThreadAttr_t thr_1_attributes = {
 
 
 //define variables
-char yourmom[] = "yourmom";
+char yourmom[] = "URMOM.txt";
 float ADC_P0 = 0;
 
 
@@ -31,13 +31,19 @@ void state_machine_init(void){
 	thr_1 = osThreadNew(controller_state_machine, &hadc1, &thr_1_attributes);
 }
 
+
+
 void controller_state_machine(void *args){
+	SD_init();
 	ADC_P0=ADC_buffer_processed[0];
-	SD_process(yourmom, &ADC_P0, 1);
+	uint16_t adc_buff = 4096;
+	char buffer[16];
+	int n = snprintf(buffer, sizeof(buffer), "suck my cock %d", adc_buff);
+//	SD_process(yourmom, &ADC_P0, sizeof(ADC_P0));
 	  for(;;)
 	  {
 		  osSemaphoreAcquire(ADC_semHandle, 1);
-
+		  SD_process(yourmom, buffer, n);
 
 	    osDelay(1);
 	  }

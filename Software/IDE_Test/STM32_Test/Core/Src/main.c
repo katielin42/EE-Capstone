@@ -63,7 +63,7 @@ SRAM_HandleTypeDef hsram1;
 osThreadId_t defaultTaskHandle;
 const osThreadAttr_t defaultTask_attributes = {
   .name = "defaultTask",
-  .stack_size = 128 * 4,
+  .stack_size = 1024 * 4,
   .priority = (osPriority_t) osPriorityNormal,
 };
 /* USER CODE BEGIN PV */
@@ -162,7 +162,7 @@ int main(void)
   /* Create the thread(s) */
   /* creation of defaultTask */
 
-  defaultTaskHandle = osThreadNew(SD_init, NULL, &defaultTask_attributes);
+  defaultTaskHandle = osThreadNew(StartDefaultTask, NULL, &defaultTask_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -177,7 +177,6 @@ int main(void)
 
   /* Start scheduler */
   osKernelStart();
-  SD_init();
   /* We should never get here as control is now taken by the scheduler */
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
