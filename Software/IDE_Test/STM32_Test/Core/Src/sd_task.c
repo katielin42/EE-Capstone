@@ -14,6 +14,8 @@ uint32_t byteswritten, bytesread; /* File write/read counts */
 uint16_t rtext[_MAX_SS];/* File read buffer */
 /* USER CODE END 1 */
 
+
+//if unmount SD card, need to rerun this block SD_init again to re-mount sd card, otherwise data collection process will be halted.
 void SD_init(void){
 	if(f_mount(&SDFatFS, (TCHAR const*)SDPath, 0) != FR_OK){
 		Error_Handler();
@@ -29,7 +31,8 @@ void SD_init(void){
 //void* is common denominator for all pointers. Temp var to be changed to use with anything else
 void SD_process(char *filename, void *buffer, int length){
 			//Open file for writing (Create)
-			if(f_open(&SDFile, filename, FA_CREATE_ALWAYS | FA_WRITE) != FR_OK){
+//			if(f_open(&SDFile, filename, FA_CREATE_ALWAYS | FA_WRITE) != FR_OK){
+			if(f_open(&SDFile, filename, FA_OPEN_APPEND | FA_WRITE) != FR_OK){
 				Error_Handler();
 			}
 			else{

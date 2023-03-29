@@ -13,7 +13,7 @@
 osThreadId_t thr_1;
 const osThreadAttr_t thr_1_attributes = {
   .name = "defaultTask",
-  .stack_size = 128 * 4,
+  .stack_size = 256 * 4,
   .priority = (osPriority_t) osPriorityNormal,
 };
 
@@ -37,15 +37,15 @@ void controller_state_machine(void *args){
 	SD_init();
 	ADC_P0=ADC_buffer_processed[0];
 	uint16_t adc_buff = 4096;
-	char buffer[16];
-	int n = snprintf(buffer, sizeof(buffer), "suck my cock %d", adc_buff);
+	char buffer[20];
+	int n = snprintf(buffer, sizeof(buffer), "testing 123 %d\n", adc_buff);
+
 //	SD_process(yourmom, &ADC_P0, sizeof(ADC_P0));
 	  for(;;)
 	  {
 		  osSemaphoreAcquire(ADC_semHandle, 1);
 		  SD_process(yourmom, buffer, n);
-
-	    osDelay(1);
+	      osDelay(1000);
 	  }
 	  // State transition if/else logic
 
