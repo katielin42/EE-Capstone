@@ -20,8 +20,9 @@ const osThreadAttr_t thr_1_attributes = {
 
 //define variables
 char yourmom[] = "URMOM.txt";
-float ADC_P0 = 0;
-
+float APPS_VPA = 0, APPS_VPA2 = 0, BSE = 0;
+//initialize write buffer for the SD card, size is arbitrary just be large enough to contain the chars
+char buffer[20];
 
 void controller_state_machine(void *args);
 
@@ -35,15 +36,17 @@ void state_machine_init(void){
 
 void controller_state_machine(void *args){
 	SD_init();
-	ADC_P0=ADC_buffer_processed[0];
-	uint16_t adc_buff = 4096;
-	char buffer[20];
-	int n = snprintf(buffer, sizeof(buffer), "testing 123 %d\n", adc_buff);
+
+
 
 //	SD_process(yourmom, &ADC_P0, sizeof(ADC_P0));
 	  for(;;)
 	  {
 		  osSemaphoreAcquire(ADC_semHandle, 1);
+		  ADC_P0=ADC_buffer_processed[0];
+		  APPS_
+		  int n = snprintf(buffer, sizeof(buffer), "PA0 Value is: %1.2f\n", APPS_VPA);
+		  osDelay(1000);
 		  SD_process(yourmom, buffer, n);
 	      osDelay(1000);
 	  }

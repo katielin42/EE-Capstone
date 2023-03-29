@@ -21,6 +21,7 @@ void SD_init(void){
 		Error_Handler();
 	}
 	else{
+
 		if(f_mkfs((TCHAR const*)SDPath, FM_ANY, 0, rtext, sizeof(rtext)) != FR_OK)
 		{
 			Error_Handler();
