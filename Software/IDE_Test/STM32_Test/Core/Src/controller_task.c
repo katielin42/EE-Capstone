@@ -4,6 +4,7 @@
 #include "adc_task.h"
 //#include "can_task.h"
 #include "sd_task.h"
+#include
 
 
 
@@ -43,8 +44,9 @@ void controller_state_machine(void *args){
 	  for(;;)
 	  {
 		  osSemaphoreAcquire(ADC_semHandle, 1);
-		  ADC_P0=ADC_buffer_processed[0];
-		  APPS_
+		  APPS_VPA=ADC_buffer_processed[0];
+		  APPS_VPA2=ADC_buffer_processed[1];
+		  BSE=ADC_buffer_processed[2];
 		  int n = snprintf(buffer, sizeof(buffer), "PA0 Value is: %1.2f\n", APPS_VPA);
 		  osDelay(1000);
 		  SD_process(yourmom, buffer, n);
