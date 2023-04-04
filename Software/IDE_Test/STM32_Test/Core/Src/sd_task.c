@@ -30,7 +30,7 @@ void SD_init(void){
 }
 //
 //void* is common denominator for all pointers. Temp var to be changed to use with anything else
-void SD_process(char *filename, void *buffer, int length){
+void SD_process(const char *filename, void *buffer, int length){
 			//Open file for writing (Create)
 //			if(f_open(&SDFile, filename, FA_CREATE_ALWAYS | FA_WRITE) != FR_OK){
 			if(f_open(&SDFile, filename, FA_OPEN_APPEND | FA_WRITE) != FR_OK){

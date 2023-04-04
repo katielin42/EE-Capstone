@@ -24,7 +24,8 @@ const osSemaphoreAttr_t ADC_sem_attributes = {
 };
 
 //private variables
-float vref = 3.3, gnd = 0, adc_reso = 4095;
+//multiply by resistor divider
+const float vref = 3.3, gnd = 0, adc_reso = 4096, resistor_divider_val = 1.5;
 /* USER CODE BEGIN PV */
 
 
@@ -44,7 +45,7 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc){
 	// average the ADC values from 3 consecutive samples and convert them into the analog values with the formula (VREF-GND)/ADC_BIT_RESOLUTION
 	//// analog values from adc bit sample = (VREF-GND)*ADC_bits/4095
 	for(int i = 0 ; i < 3; i++) {
-		ADC_buffer_processed[i] = ((vref-gnd)/adc_reso)*(((float)ADC_buffer_raw[0 + i] + ADC_buffer_raw[3 + i] + ADC_buffer_raw[6 + i])/3);
+		ADC_buffer_processed[i] = resistor_divider_val * ((vref-gnd)/adc_reso)*(((float)ADC_buffer_raw[0 + i] + ADC_buffer_raw[3 + i] + ADC_buffer_raw[6 + i])/3);
 	}
 	osSemaphoreRelease(ADC_semHandle);
 }
