@@ -25,11 +25,12 @@
 /* USER CODE BEGIN Includes */
 #include "adc_task.h"
 #include "sd_task.h"
+#include "can_task.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
+typedef StaticQueue_t osStaticMessageQDef_t;
 typedef StaticSemaphore_t osStaticMutexDef_t;
-typedef StaticSemaphore_t osStaticSemaphoreDef_t;
 /* USER CODE BEGIN PTD */
 
 /* USER CODE END PTD */
@@ -52,13 +53,7 @@ DMA_HandleTypeDef hdma_adc1;
 
 CAN_HandleTypeDef hcan1;
 
-I2C_HandleTypeDef hi2c1;
-
 SD_HandleTypeDef hsd1;
-
-SPI_HandleTypeDef hspi2;
-
-SRAM_HandleTypeDef hsram1;
 
 /* Definitions for defaultTask */
 osThreadId_t defaultTaskHandle;
@@ -66,6 +61,17 @@ const osThreadAttr_t defaultTask_attributes = {
   .name = "defaultTask",
   .stack_size = 128 * 4,
   .priority = (osPriority_t) osPriorityNormal,
+};
+/* Definitions for myQueue01 */
+osMessageQueueId_t myQueue01Handle;
+uint8_t myQueue01Buffer[ 16 * sizeof( uint16_t ) ];
+osStaticMessageQDef_t myQueue01ControlBlock;
+const osMessageQueueAttr_t myQueue01_attributes = {
+  .name = "myQueue01",
+  .cb_mem = &myQueue01ControlBlock,
+  .cb_size = sizeof(myQueue01ControlBlock),
+  .mq_mem = &myQueue01Buffer,
+  .mq_size = sizeof(myQueue01Buffer)
 };
 /* Definitions for myMutex01 */
 osMutexId_t myMutex01Handle;
@@ -75,7 +81,6 @@ const osMutexAttr_t myMutex01_attributes = {
   .cb_mem = &myMutex01ControlBlock,
   .cb_size = sizeof(myMutex01ControlBlock),
 };
-/* Definitions for ADC_sem */
 /* USER CODE BEGIN PV */
 
 /* Definitions for myMutex01 */
@@ -93,10 +98,7 @@ const osMutexAttr_t myMutex01_attributes = {
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_DMA_Init(void);
-static void MX_FMC_Init(void);
-static void MX_I2C1_Init(void);
 static void MX_SDMMC1_SD_Init(void);
-static void MX_SPI2_Init(void);
 static void MX_CAN1_Init(void);
 static void MX_ADC1_Init(void);
 void StartDefaultTask(void *argument);
@@ -138,10 +140,7 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_DMA_Init();
-  MX_FMC_Init();
-  MX_I2C1_Init();
   MX_SDMMC1_SD_Init();
-  MX_SPI2_Init();
   MX_CAN1_Init();
   MX_ADC1_Init();
   MX_FATFS_Init();
@@ -159,10 +158,6 @@ int main(void)
   /* add mutexes, ... */
   /* USER CODE END RTOS_MUTEX */
 
-  /* Create the semaphores(s) */
-  /* creation of ADC_sem */
-//  ADC_semHandle = osSemaphoreNew(1, 1, &ADC_sem_attributes);
-
   /* USER CODE BEGIN RTOS_SEMAPHORES */
   /* add semaphores, ... */
   /* USER CODE END RTOS_SEMAPHORES */
@@ -170,6 +165,10 @@ int main(void)
   /* USER CODE BEGIN RTOS_TIMERS */
   /* start timers, add new ones, ... */
   /* USER CODE END RTOS_TIMERS */
+
+  /* Create the queue(s) */
+  /* creation of myQueue01 */
+  myQueue01Handle = osMessageQueueNew (16, sizeof(uint16_t), &myQueue01_attributes);
 
   /* USER CODE BEGIN RTOS_QUEUES */
   /* add queues, ... */
@@ -182,6 +181,7 @@ int main(void)
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
   ADC_Init();
+  canInitialize();
   /* USER CODE END RTOS_THREADS */
 
   /* USER CODE BEGIN RTOS_EVENTS */
@@ -189,8 +189,6 @@ int main(void)
   /* USER CODE END RTOS_EVENTS */
 
   /* Start scheduler */
-  //please note that anything after this oskernalstart function is not gonna run. If you want to create y
-  //your own functions, you need to create another .c and .h file as shown.
   osKernelStart();
 
   /* We should never get here as control is now taken by the scheduler */
@@ -368,54 +366,6 @@ static void MX_CAN1_Init(void)
 }
 
 /**
-  * @brief I2C1 Initialization Function
-  * @param None
-  * @retval None
-  */
-static void MX_I2C1_Init(void)
-{
-
-  /* USER CODE BEGIN I2C1_Init 0 */
-
-  /* USER CODE END I2C1_Init 0 */
-
-  /* USER CODE BEGIN I2C1_Init 1 */
-
-  /* USER CODE END I2C1_Init 1 */
-  hi2c1.Instance = I2C1;
-  hi2c1.Init.Timing = 0x307075B1;
-  hi2c1.Init.OwnAddress1 = 0;
-  hi2c1.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
-  hi2c1.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
-  hi2c1.Init.OwnAddress2 = 0;
-  hi2c1.Init.OwnAddress2Masks = I2C_OA2_NOMASK;
-  hi2c1.Init.GeneralCallMode = I2C_GENERALCALL_DISABLE;
-  hi2c1.Init.NoStretchMode = I2C_NOSTRETCH_DISABLE;
-  if (HAL_I2C_Init(&hi2c1) != HAL_OK)
-  {
-    Error_Handler();
-  }
-
-  /** Configure Analogue filter
-  */
-  if (HAL_I2CEx_ConfigAnalogFilter(&hi2c1, I2C_ANALOGFILTER_ENABLE) != HAL_OK)
-  {
-    Error_Handler();
-  }
-
-  /** Configure Digital filter
-  */
-  if (HAL_I2CEx_ConfigDigitalFilter(&hi2c1, 0) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /* USER CODE BEGIN I2C1_Init 2 */
-
-  /* USER CODE END I2C1_Init 2 */
-
-}
-
-/**
   * @brief SDMMC1 Initialization Function
   * @param None
   * @retval None
@@ -444,46 +394,6 @@ static void MX_SDMMC1_SD_Init(void)
 }
 
 /**
-  * @brief SPI2 Initialization Function
-  * @param None
-  * @retval None
-  */
-static void MX_SPI2_Init(void)
-{
-
-  /* USER CODE BEGIN SPI2_Init 0 */
-
-  /* USER CODE END SPI2_Init 0 */
-
-  /* USER CODE BEGIN SPI2_Init 1 */
-
-  /* USER CODE END SPI2_Init 1 */
-  /* SPI2 parameter configuration*/
-  hspi2.Instance = SPI2;
-  hspi2.Init.Mode = SPI_MODE_MASTER;
-  hspi2.Init.Direction = SPI_DIRECTION_2LINES;
-  hspi2.Init.DataSize = SPI_DATASIZE_4BIT;
-  hspi2.Init.CLKPolarity = SPI_POLARITY_LOW;
-  hspi2.Init.CLKPhase = SPI_PHASE_1EDGE;
-  hspi2.Init.NSS = SPI_NSS_SOFT;
-  hspi2.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_4;
-  hspi2.Init.FirstBit = SPI_FIRSTBIT_MSB;
-  hspi2.Init.TIMode = SPI_TIMODE_DISABLE;
-  hspi2.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
-  hspi2.Init.CRCPolynomial = 7;
-  hspi2.Init.CRCLength = SPI_CRC_LENGTH_DATASIZE;
-  hspi2.Init.NSSPMode = SPI_NSS_PULSE_ENABLE;
-  if (HAL_SPI_Init(&hspi2) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /* USER CODE BEGIN SPI2_Init 2 */
-
-  /* USER CODE END SPI2_Init 2 */
-
-}
-
-/**
   * Enable DMA controller clock
   */
 static void MX_DMA_Init(void)
@@ -498,62 +408,6 @@ static void MX_DMA_Init(void)
   HAL_NVIC_SetPriority(DMA1_Channel1_IRQn, 5, 0);
   HAL_NVIC_EnableIRQ(DMA1_Channel1_IRQn);
 
-}
-
-/* FMC initialization function */
-static void MX_FMC_Init(void)
-{
-
-  /* USER CODE BEGIN FMC_Init 0 */
-
-  /* USER CODE END FMC_Init 0 */
-
-  FMC_NORSRAM_TimingTypeDef Timing = {0};
-
-  /* USER CODE BEGIN FMC_Init 1 */
-
-  /* USER CODE END FMC_Init 1 */
-
-  /** Perform the SRAM1 memory initialization sequence
-  */
-  hsram1.Instance = FMC_NORSRAM_DEVICE;
-  hsram1.Extended = FMC_NORSRAM_EXTENDED_DEVICE;
-  /* hsram1.Init */
-  hsram1.Init.NSBank = FMC_NORSRAM_BANK1;
-  hsram1.Init.DataAddressMux = FMC_DATA_ADDRESS_MUX_DISABLE;
-  hsram1.Init.MemoryType = FMC_MEMORY_TYPE_PSRAM;
-  hsram1.Init.MemoryDataWidth = FMC_NORSRAM_MEM_BUS_WIDTH_16;
-  hsram1.Init.BurstAccessMode = FMC_BURST_ACCESS_MODE_ENABLE;
-  hsram1.Init.WaitSignalPolarity = FMC_WAIT_SIGNAL_POLARITY_LOW;
-  hsram1.Init.WaitSignalActive = FMC_WAIT_TIMING_BEFORE_WS;
-  hsram1.Init.WriteOperation = FMC_WRITE_OPERATION_DISABLE;
-  hsram1.Init.WaitSignal = FMC_WAIT_SIGNAL_ENABLE;
-  hsram1.Init.ExtendedMode = FMC_EXTENDED_MODE_DISABLE;
-  hsram1.Init.AsynchronousWait = FMC_ASYNCHRONOUS_WAIT_DISABLE;
-  hsram1.Init.WriteBurst = FMC_WRITE_BURST_ENABLE;
-  hsram1.Init.ContinuousClock = FMC_CONTINUOUS_CLOCK_SYNC_ONLY;
-  hsram1.Init.WriteFifo = FMC_WRITE_FIFO_ENABLE;
-  hsram1.Init.NBLSetupTime = 0;
-  hsram1.Init.PageSize = FMC_PAGE_SIZE_NONE;
-  /* Timing */
-  Timing.AddressSetupTime = 15;
-  Timing.AddressHoldTime = 15;
-  Timing.DataSetupTime = 255;
-  Timing.DataHoldTime = 0;
-  Timing.BusTurnAroundDuration = 15;
-  Timing.CLKDivision = 16;
-  Timing.DataLatency = 2;
-  Timing.AccessMode = FMC_ACCESS_MODE_A;
-  /* ExtTiming */
-
-  if (HAL_SRAM_Init(&hsram1, &Timing, NULL) != HAL_OK)
-  {
-    Error_Handler( );
-  }
-
-  /* USER CODE BEGIN FMC_Init 2 */
-
-  /* USER CODE END FMC_Init 2 */
 }
 
 /**
@@ -604,6 +458,20 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOH, &GPIO_InitStruct);
 
+  /*Configure GPIO pins : PSRAM_NBL0_Pin PSRAM_NBL1_Pin PSRAM_A20_Pin PSRAM_A19_Pin
+                           D7_Pin D6_Pin D12_Pin D5_Pin
+                           D11_Pin D4_Pin D10_Pin D9_Pin
+                           D8_Pin */
+  GPIO_InitStruct.Pin = PSRAM_NBL0_Pin|PSRAM_NBL1_Pin|PSRAM_A20_Pin|PSRAM_A19_Pin
+                          |D7_Pin|D6_Pin|D12_Pin|D5_Pin
+                          |D11_Pin|D4_Pin|D10_Pin|D9_Pin
+                          |D8_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+  GPIO_InitStruct.Alternate = GPIO_AF12_FMC;
+  HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
+
   /*Configure GPIO pin : ARD_D6_Pin */
   GPIO_InitStruct.Pin = ARD_D6_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
@@ -619,6 +487,14 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
   GPIO_InitStruct.Alternate = GPIO_AF7_USART3;
   HAL_GPIO_Init(USART3_RTS_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : ARD_10_Pin */
+  GPIO_InitStruct.Pin = ARD_10_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+  GPIO_InitStruct.Alternate = GPIO_AF5_SPI2;
+  HAL_GPIO_Init(ARD_10_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pins : DCMI_D7_Pin DCMI_D5_Pin DCMI_VSYNC_Pin */
   GPIO_InitStruct.Pin = DCMI_D7_Pin|DCMI_D5_Pin|DCMI_VSYNC_Pin;
@@ -644,6 +520,20 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Alternate = GPIO_AF5_OCTOSPIM_P2;
   HAL_GPIO_Init(GPIOG, &GPIO_InitStruct);
 
+  /*Configure GPIO pins : D2_Pin PSRAM_OE_Pin D3_Pin PSRAM_WE_Pin
+                           PSRAM_WAIT_Pin PSRAM_CLK_Pin PSRAM_NE1_Pin PSRAM_A18_Pin
+                           D1_Pin D0_Pin PSRAM_A17_Pin PSRAM_A16_Pin
+                           D15_Pin D14_Pin D13_Pin */
+  GPIO_InitStruct.Pin = D2_Pin|PSRAM_OE_Pin|D3_Pin|PSRAM_WE_Pin
+                          |PSRAM_WAIT_Pin|PSRAM_CLK_Pin|PSRAM_NE1_Pin|PSRAM_A18_Pin
+                          |D1_Pin|D0_Pin|PSRAM_A17_Pin|PSRAM_A16_Pin
+                          |D15_Pin|D14_Pin|D13_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+  GPIO_InitStruct.Alternate = GPIO_AF12_FMC;
+  HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
+
   /*Configure GPIO pin : MFX_IRQ_OUT_Pin */
   GPIO_InitStruct.Pin = MFX_IRQ_OUT_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
@@ -657,6 +547,14 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   GPIO_InitStruct.Alternate = GPIO_AF10_DCMI;
   HAL_GPIO_Init(GPIOH, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : I2C1_SCL_Pin */
+  GPIO_InitStruct.Pin = I2C1_SCL_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_AF_OD;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+  GPIO_InitStruct.Alternate = GPIO_AF4_I2C1;
+  HAL_GPIO_Init(I2C1_SCL_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pin : ARD_D9_Pin */
   GPIO_InitStruct.Pin = ARD_D9_Pin;
@@ -682,6 +580,14 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Alternate = GPIO_AF13_SAI1;
   HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
 
+  /*Configure GPIO pin : PSRAM_ADV_Pin */
+  GPIO_InitStruct.Pin = PSRAM_ADV_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+  GPIO_InitStruct.Alternate = GPIO_AF12_FMC;
+  HAL_GPIO_Init(PSRAM_ADV_GPIO_Port, &GPIO_InitStruct);
+
   /*Configure GPIO pin : USB_OTGFS_ID_Pin */
   GPIO_InitStruct.Pin = USB_OTGFS_ID_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
@@ -697,6 +603,18 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(JOY_SEL_GPIO_Port, &GPIO_InitStruct);
 
+  /*Configure GPIO pins : PSRAM_A2_Pin PSRAM_A1_Pin PSRAM_A0_Pin PSRAM_A3_Pin
+                           PSRAM_A4_Pin PSRAM_A5_Pin PSRAM_A9_Pin PSRAM_A8_Pin
+                           PSRAM_A7_Pin PSRAM_A6_Pin */
+  GPIO_InitStruct.Pin = PSRAM_A2_Pin|PSRAM_A1_Pin|PSRAM_A0_Pin|PSRAM_A3_Pin
+                          |PSRAM_A4_Pin|PSRAM_A5_Pin|PSRAM_A9_Pin|PSRAM_A8_Pin
+                          |PSRAM_A7_Pin|PSRAM_A6_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+  GPIO_InitStruct.Alternate = GPIO_AF12_FMC;
+  HAL_GPIO_Init(GPIOF, &GPIO_InitStruct);
+
   /*Configure GPIO pins : ARD_14_Pin ARD_15_Pin */
   GPIO_InitStruct.Pin = ARD_14_Pin|ARD_15_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_AF_OD;
@@ -710,6 +628,24 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(STMOD_INT_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : I2C1_SDA_Pin */
+  GPIO_InitStruct.Pin = I2C1_SDA_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_AF_OD;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+  GPIO_InitStruct.Alternate = GPIO_AF4_I2C1;
+  HAL_GPIO_Init(I2C1_SDA_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : PSRAM_A14_Pin PSRAM_A13_Pin PSRAM_A15_Pin PSRAM_A11_Pin
+                           PSRAM_A12_Pin PSRAM_A10_Pin */
+  GPIO_InitStruct.Pin = PSRAM_A14_Pin|PSRAM_A13_Pin|PSRAM_A15_Pin|PSRAM_A11_Pin
+                          |PSRAM_A12_Pin|PSRAM_A10_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+  GPIO_InitStruct.Alternate = GPIO_AF12_FMC;
+  HAL_GPIO_Init(GPIOG, &GPIO_InitStruct);
 
   /*Configure GPIO pins : DFDATIN3_Pin DF_CKOUT_Pin */
   GPIO_InitStruct.Pin = DFDATIN3_Pin|DF_CKOUT_Pin;
@@ -747,6 +683,14 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(SPI2_CS_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : SPI_MOSI_Pin SPI2_MISO_Pin SPI2_CLK_Pin */
+  GPIO_InitStruct.Pin = SPI_MOSI_Pin|SPI2_MISO_Pin|SPI2_CLK_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+  GPIO_InitStruct.Alternate = GPIO_AF5_SPI2;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
   /*Configure GPIO pin : USART2_RX_Pin */
   GPIO_InitStruct.Pin = USART2_RX_Pin;

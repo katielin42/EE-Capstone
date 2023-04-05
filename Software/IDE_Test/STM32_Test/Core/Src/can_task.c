@@ -6,48 +6,113 @@
  */
 #include "main.h"
 #include "cmsis_os.h"
-#include "fatfs.h"
-#include "../../Open-SAE-J1939/Open_SAE_J1939/Open_SAE_J1939.h"
 
-uint8_t addressIndex;
-uint32_t motorTemp_ID = 0x18FEA4FE;
-uint32_t engineSpeed_ID = 0x18F004FE;
-uint8_t data[];
-// put in main
-J1939 motorTemp_ECU = {0};
-J1939 engineSpeed_ECU = {0};
-int motorScale = 0.03125;
-Open_SAE_J1939_Startup_ECU(&motorTemp_ECU);
-Open_SAE_J1939_Startup_ECU(&engineSpeed_ECU);
-Open_SAE_J1939_Listen_For_Messages(&motorTemp_ECU);
-//
+typedef enum {
+	temperatureAddress = 0x0A2,
+	txAddress = 0x0C0,
+} motorAddress;
 
-void CAN_init(J1939 *motorTemp_ECU, J1939 *engineSpeed_ECU) {
-	for (addressIndex = 0; addressIndex < 255; addressIndex++) {
-		motorTemp_ECU->other_ECU_address[addressIndex] = 0xFF;
-		engineSpeed_ECU->other_ECU_address[addressIndex] = 0xFF;
+//CAN_HandleTypeDef hcan1;
+CAN_RxHeaderTypeDef  RxHeader;
+CAN_TxHeaderTypeDef   txCAN;
+uint32_t txMail;
+uint8_t RxData[8];
+uint8_t txData[8];
+
+int temp;
+int motorTorqueHighFault = 0x00;
+int motorTorqueLowFault = 0x00;
+int decodedTemperature;
+
+int temperatureDecode (int high, int low) {
+	 int temperatureCelsius = (high*256 + low)/10;
+	return temperatureCelsius;
+}
+unsigned int revHex(unsigned int hex_num) {
+    unsigned int reversed_num = 0;
+    while (hex_num > 0) {
+        reversed_num = (reversed_num << 4) + (hex_num & 0xF);
+        hex_num >>= 4;
+    }
+    return reversed_num;
+}
+void canInitialize(void) {
+
+	CAN_FilterTypeDef  sFilterConfig;
+
+	txCAN.IDE = CAN_ID_EXT;
+	txCAN.RTR = CAN_RTR_DATA;
+	txCAN.TransmitGlobalTime = DISABLE;
+
+	sFilterConfig.FilterBank = 0;
+	sFilterConfig.FilterMode = CAN_FILTERMODE_IDMASK;
+	sFilterConfig.FilterScale = CAN_FILTERSCALE_32BIT;
+	sFilterConfig.FilterIdHigh = 0x0000;
+	sFilterConfig.FilterIdLow = 0x0000;
+	sFilterConfig.FilterMaskIdHigh = 0x0000;
+	sFilterConfig.FilterMaskIdLow = 0x0000;
+	sFilterConfig.FilterFIFOAssignment = CAN_RX_FIFO0;
+	sFilterConfig.FilterActivation = ENABLE;
+	sFilterConfig.SlaveStartFilterBank = 14;
+
+	if (HAL_CAN_ConfigFilter(&hcan1, &sFilterConfig) != HAL_OK)
+	{
+	    /* Filter configuration Error */
+	  Error_Handler();
 	}
-	motorTemp_ECU->ID = 0x18FEA4FE;
-	engineSpeed_ECU->ID = 0x18F004FE;
-	motorTemp_ECU.information_this_ECU.this_ECU_address = 0x15;
-	engineSpeed_ECU.information_this_ECU.this_ECU_address = 0xBE;
+	HAL_CAN_Start(&hcan1);
+}
+void canSend(void) {
+	txCAN.ExtId = txAddress;
+	txCAN.DLC = 2;
+	txData[0] = motorTorqueLowFault;
+	txData[1] = motorTorqueHighFault;
+	HAL_CAN_AddTxMessage(&hcan1, &txCAN, txData, &txMail);
 }
 
-int CAN_decode(*temperatureID, data[]){
-	int temperature;
-	CAN_Read_Message(*motorTemp_ECU.ID, motorTemp_ECU.data); //why is data unsigned 8
-	temperature = data[1]*motorScale;
-	return temperature;
-}
-void CAN_send(engineSpeed_ECU.ID, data[8]) {
-	CAN_Send_Message(engineSpeed_ECU.ID, data[8]);
+void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
+{
+
+  /* Get RX message */
+  if (HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO0, &RxHeader, RxData) != HAL_OK)
+  {
+	/* Reception Error */
+	Error_Handler();
+  }
+  if (RxHeader.ExtId == temperatureAddress) {
+	  decodedTemperature = temperatureDecode(RxData[5], RxData[4]);
+  }
+  if (HAL_CAN_ActivateNotification(&hcan1, CAN_IT_RX_FIFO0_MSG_PENDING) != HAL_OK)
+  {
+    /* Notification Error */
+    Error_Handler();
+  }
 }
 
-// read motor temperature address: 0x15
-//  send engine speed data address: 0xBE
-// define addresses here
-// check if bx of fd can l4r9
-// engine speed is 0xBEU or is it 0xBE ?
-// I want to extract the motor temperature
-//PGN_ENGINE_TEMPERATURE_1_65262 = 0x00FEEEU
-//PGN_ELECTRONIC_ENGINE_CONTROLLER_1_61444 = 0x00F004U
+//int canRecieve(void) {
+//	int decodedTemperature;
+//
+//	if (HAL_CAN_ActivateNotification(&hcan1, CAN_IT_RX_FIFO0_MSG_PENDING) != HAL_OK)
+//	{
+//	  /* Notification Error */
+//	  Error_Handler();
+//	}
+//
+//	void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan) {
+//
+//	  /* Get RX message */
+//	  if (HAL_CAN_GetRxMessage(&hcan1, CAN_RX_FIFO0, &RxHeader, RxData) != HAL_OK)
+//	  {
+//		/* Reception Error */
+//		Error_Handler();
+//	  }
+//	  if (RxHeader.ExtId == temperatureAddress) {
+//		  decodedTemperature = temperatureDecode(RxData[5], RxData[4]);
+//	  }
+//	}
+//
+//	return decodedTemperature;
+//}
+
+
+
