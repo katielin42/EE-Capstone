@@ -18,6 +18,19 @@ CAN_TxHeaderTypeDef   txCAN;
 uint32_t txMail;
 uint8_t RxData[8];
 uint8_t txData[8];
+//
+//osSemaphoreId_t CAN_semHandle;
+//typedef StaticSemaphore_t osStaticSemaphoreDef_t;
+//
+//osStaticSemaphoreDef_t CAN_sem_ctrl_blk;
+//const osSemaphoreAttr_t CAN_sem_attributes = {
+//  .name = "CAN_sem",
+//  .cb_mem = &CAN_sem_ctrl_blk,
+//  .cb_size = sizeof(CAN_sem_ctrl_blk),
+//};
+
+
+
 
 int temp;
 int motorTorqueHighFault = 0x00;
@@ -36,7 +49,7 @@ unsigned int revHex(unsigned int hex_num) {
     }
     return reversed_num;
 }
-void canInitialize(void) {
+void can_Init(void) {
 
 	CAN_FilterTypeDef  sFilterConfig;
 
@@ -67,7 +80,11 @@ void canSend(void) {
 	txCAN.DLC = 2;
 	txData[0] = motorTorqueLowFault;
 	txData[1] = motorTorqueHighFault;
-	HAL_CAN_AddTxMessage(&hcan1, &txCAN, txData, &txMail);
+	while(1) {
+		HAL_CAN_AddTxMessage(&hcan1, &txCAN, txData, &txMail);
+		osDelay(50);
+	}
+	//HAL_CAN_AddTxMessage(&hcan1, &txCAN, txData, &txMail);
 }
 
 void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
@@ -79,13 +96,13 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
 	/* Reception Error */
 	Error_Handler();
   }
-  if (RxHeader.ExtId == temperatureAddress) {
-	  decodedTemperature = temperatureDecode(RxData[5], RxData[4]);
-  }
   if (HAL_CAN_ActivateNotification(&hcan1, CAN_IT_RX_FIFO0_MSG_PENDING) != HAL_OK)
   {
     /* Notification Error */
     Error_Handler();
+  }
+  if (RxHeader.ExtId == temperatureAddress) {
+	  decodedTemperature = temperatureDecode(RxData[5], RxData[4]);
   }
 }
 
