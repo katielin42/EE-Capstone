@@ -45,6 +45,7 @@ void controller_state_machine(void *args){
 	float APPS_VPA = 0, APPS_VPA2 = 0, BSE = 0;
 //	uint8_t sd_status = BSP_SD_IsDetected();
 	char buffer[90];
+	//dummy var for storing motor temp
 	float motor_overheat = 0;
 	uint32_t startTimeStamp = osKernelGetSysTimerCount();
 	//initialize write buffer for the SD card, size is arbitrary just be large enough to contain the chars
