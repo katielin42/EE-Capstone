@@ -1,0 +1,1 @@
+EVCU (electrical vehicle control unit) is a project affiliated with UAlberta Formula SAE (FSAE). EVCU will be the control unit for FSAE’s 2024 electric vehicle (EV). EVCU acts as the brain to the EV. Its main functions are to communicate with the motor controller via CAN BUS, and to process, collect and store data from important pedal and brake sensors. 
