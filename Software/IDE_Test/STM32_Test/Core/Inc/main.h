@@ -177,8 +177,6 @@ void Error_Handler(void);
 #define PSRAM_A15_GPIO_Port GPIOG
 #define ARD_15_Pin GPIO_PIN_7
 #define ARD_15_GPIO_Port GPIOG
-#define DFDATIN3_Pin GPIO_PIN_7
-#define DFDATIN3_GPIO_Port GPIOC
 #define uSD_D1_Pin GPIO_PIN_9
 #define uSD_D1_GPIO_Port GPIOC
 #define PSRAM_A11_Pin GPIO_PIN_1
