@@ -6,6 +6,7 @@
 #include "bsp_driver_sd.h"
 //#include "can_task.h"
 #include "sd_task.h"
+#include "can_task.h"
 
 
 
@@ -21,7 +22,7 @@ const osThreadAttr_t thr_1_attributes = {
 
 
 //define variables
-const char yourmom[] = "URMOM.txt";
+const char errlog[] = "ErrorLog.txt";
 
 void controller_state_machine(void *args);
 
@@ -44,9 +45,9 @@ void controller_state_machine(void *args){
 	SD_init();
 	float APPS_VPA = 0, APPS_VPA2 = 0, BSE = 0;
 //	uint8_t sd_status = BSP_SD_IsDetected();
-	char buffer[90];
+	char buffer[120];
+	char buffer2[90];
 	//dummy var for storing motor temp
-	float motor_overheat = 0;
 	uint32_t startTimeStamp = osKernelGetSysTimerCount();
 	//initialize write buffer for the SD card, size is arbitrary just be large enough to contain the chars
 //	if (sd_status == SD_PRESENT) {
@@ -60,20 +61,24 @@ void controller_state_machine(void *args){
 //		  }
 //		  sd_status = BSP_SD_IsDetected();
 		  update_values(&APPS_VPA, &APPS_VPA2, &BSE);
-		  int n = snprintf(buffer, sizeof(buffer), "Error log: APPS Value is %1.2f, APPS2 Value is %1.2f, BSE Value is %1.2f; \n", APPS_VPA, APPS_VPA2, BSE);
+		  int n = snprintf(buffer, sizeof(buffer), "Error log: APPS Value is %1.2f, APPS2 Value is %1.2f, BSE Value is %1.2f, Setting motor torque to 0Nm; \n", APPS_VPA, APPS_VPA2, BSE);
+		  int p = snprintf(buffer2, sizeof(buffer2), "Error log: Motor Temperature is %i, Setting motor torque to 0Nm; \n", decodedTemperature);
 		  //maybe can replace with another while 1 looperoni
 		  if (check_error(APPS_VPA, APPS_VPA2, BSE)){
 			  if(osKernelGetSysTimerCount() - startTimeStamp >= 100) {
 				  //send error frame
 //				  if (sd_status == SD_PRESENT) {
-					  SD_process(yourmom, buffer, n);
+				  	  canSend();
+					  SD_process(errlog, buffer, n);
 				  }
 //			  }
 		  }
 		  else {
 			  startTimeStamp = osKernelGetSysTimerCount();
 		  }
-		  if (motor_overheat>100){
+		  if (decodedTemperature>120){
+			  canSend();
+			  SD_process(errlog, buffer2, p);
 			  //else if received motor temperature is >the temp we want,
 			  //send can frame to reduce speed
 //			  if (sd_status == SD_PRESENT) {
