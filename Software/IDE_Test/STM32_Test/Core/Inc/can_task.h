@@ -11,6 +11,7 @@
 int temperatureDecode (int high, int low);
 void can_Init(void);
 void canSend(void);
+extern int decodedTemperature;
 //int canRecieve(void);
 
 

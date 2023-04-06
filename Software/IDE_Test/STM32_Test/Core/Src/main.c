@@ -182,7 +182,7 @@ int main(void)
   /* add threads, ... */
   ADC_Init();
   can_Init();
-  canSend();
+  //canSend();
   /* USER CODE END RTOS_THREADS */
 
   /* USER CODE BEGIN RTOS_EVENTS */
