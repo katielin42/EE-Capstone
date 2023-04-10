@@ -6,12 +6,14 @@ This repository is the master collection of technical files (excluding reports a
 Below is a high level hardware block diagram describing our fabricated PCB. Detailed 3d-view of the PCB and schematic can be found under Hardware Design/EVCU Rev B/EVCU. 
 
 ![image](https://user-images.githubusercontent.com/47064869/230803179-39cdc258-3503-49b4-8827-90abdd42a2b8.png)
+
 Design created by: Thomas Osei-Bonsu Jr. and Katie Lin
 
 ## Software
 Below is a high level software flowchart block diagram describing our software control flow. Detailed Documentation about code can be found below. We are using STM32Cube IDE to develop our code currently, so our configuration for our software has mostly been STM32Cube IDE presets.
 
 ![image](https://user-images.githubusercontent.com/47064869/230803031-e13324f6-1f2f-4af6-9df3-3e316a8646e2.png)
+
 Design created by: Katie Lin and Thomas Osei-Bonsu Jr.
 
 **Libraries/modules/middlewares we used:** 
