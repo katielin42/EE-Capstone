@@ -1,18 +1,18 @@
 # EE-Capstone
-This repository is the master collection of technical files (excluding reports and posters) for ECE490/491 group 1 capstone - Formula SAE EVCU (electric vehicle control unit) project. Group members are enrolled in electrical engineering at the U of A. Our valuable consultant and helpers are staff and instructors of ECE 490/491 as well as Minh, a computer engineering student, all of whom are from the University of Alberta as well. 
+This repository is the master collection of technical files (excluding reports and posters) for ECE490/491 group 1 capstone - Formula SAE EVCU (electric vehicle control unit) project. Group members are enrolled in electrical engineering at the U of A. Our valuable consultant and helpers are staff and instructors of ECE 490/491 as well as Le Minh Dang, a computer engineering student, all of whom are from the University of Alberta as well. 
 
 
 ## Hardware
 Below is a high level hardware block diagram describing our fabricated PCB. Detailed 3d-view of the PCB and schematic can be found under Hardware Design/EVCU Rev B/EVCU. 
 
-![image](https://user-images.githubusercontent.com/47064869/230803018-573f2780-4c8a-4c30-ad6b-4cd7327575e9.png)
-
+![image](https://user-images.githubusercontent.com/47064869/230803179-39cdc258-3503-49b4-8827-90abdd42a2b8.png)
+Design created by: Thomas Osei-Bonsu Jr. and Katie Lin
 
 ## Software
 Below is a high level software flowchart block diagram describing our software control flow. Detailed Documentation about code can be found below. We are using STM32Cube IDE to develop our code currently, so our configuration for our software has mostly been STM32Cube IDE presets.
 
 ![image](https://user-images.githubusercontent.com/47064869/230803031-e13324f6-1f2f-4af6-9df3-3e316a8646e2.png)
-
+Design created by: Katie Lin and Thomas Osei-Bonsu Jr.
 
 **Libraries/modules/middlewares we used:** 
 
