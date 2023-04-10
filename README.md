@@ -5,13 +5,13 @@ This repository is the master collection of technical files (excluding reports a
 ## Hardware
 Below is a high level hardware block diagram describing our fabricated PCB. Detailed 3d-view of the PCB and schematic can be found under Hardware Design/EVCU Rev B/EVCU. 
 
-![image](https://user-images.githubusercontent.com/47064869/226085153-47a4a0b2-e5be-4171-b2b0-8e58c341f8d1.png)
+![image](https://user-images.githubusercontent.com/47064869/230803018-573f2780-4c8a-4c30-ad6b-4cd7327575e9.png)
 
 
 ## Software
-Below is a high level software block diagram describing our software control flow. Detailed Documentation about code can be found below. We are using STM32Cube IDE to develop our code currently, so our configuration for our software has mostly been STM32Cube IDE presets.
+Below is a high level software flowchart block diagram describing our software control flow. Detailed Documentation about code can be found below. We are using STM32Cube IDE to develop our code currently, so our configuration for our software has mostly been STM32Cube IDE presets.
 
-![image](https://user-images.githubusercontent.com/47064869/226085287-a1d061f7-ef34-4d06-9ba2-6139424c0545.png)
+![image](https://user-images.githubusercontent.com/47064869/230803031-e13324f6-1f2f-4af6-9df3-3e316a8646e2.png)
 
 
 **Libraries/modules/middlewares we used:** 
@@ -19,8 +19,6 @@ Below is a high level software block diagram describing our software control flo
 + **FreeRTOS**: for scheduling tasks and other parallel programming functionalities
 
 + **FATFS**: for communications and r/w functions with the SD card
-
-+ **OPEN SAE CAN J-1939**: CANBUS protocol that our drive inverter uses to communicate with EVCU and other CAN modules on vehicle. 
 
 
 **Current code structure**:
@@ -33,7 +31,7 @@ Below is a high level software block diagram describing our software control flo
 
 ```ADC_task.c && ADC_task.h```: processes values going into ADC pins and saves them in an intermediate buffer for further logic/processing. 
 
-```CAN_task.c && CAN_task.h```: processes operations relevant to CAN J-1939, such as sending and receiving CAN messages, encoding and decoding of such messages...etc. 
+```CAN_task.c && CAN_task.h```: processes operations relevant to STM32 BxCAN functionalities, such as sending and receiving CAN messages, encoding and decoding of such messages...etc. 
 
 
-```controller_task.c && controller_task.h```: a giant state machine with cases, interrupts...etc that links all the tasks together. Based on the inputs and outputs of the task files described above, decide the next steps of what the MCU needs to do. 
+```controller_task.c && controller_task.h```: a giant state machine with cases, interrupts...etc that links all the tasks together. Based on the inputs and outputs of the task files described above, decide the next steps of what the MCU needs to do, usually sending CAN messages and error logging upon error detection. 
