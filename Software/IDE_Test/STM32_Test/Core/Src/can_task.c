@@ -35,11 +35,13 @@ uint8_t RxData[8], txData[8];
 //int temp;
 int motorTorqueHighFault = 0x00, motorTorqueLowFault = 0x00, decodedTemperature;
 
+//grab the hex temperature codes from the CAN frame and convert it into decimal values
 int temperatureDecode (int high, int low){
 	 int temperatureCelsius = (high*256 + low)/10;
 	return temperatureCelsius;
 }
 
+//this function reverses hex values, it is currently unused lmao.
 unsigned int revHex(unsigned int hex_num){
     unsigned int reversed_num = 0;
     while (hex_num > 0) {
@@ -49,6 +51,7 @@ unsigned int revHex(unsigned int hex_num){
     return reversed_num;
 }
 
+//initialize CAN filters for TX/RX operations
 void can_Init(void){
 	CAN_FilterTypeDef  sFilterConfig;
 	//canmsg_rx = osMessageQueueNew(10, sizeof(canMsg), &msgAttr);
@@ -65,11 +68,12 @@ void can_Init(void){
 	sFilterConfig.FilterFIFOAssignment = CAN_RX_FIFO0;
 	sFilterConfig.FilterActivation = ENABLE;
 	sFilterConfig.SlaveStartFilterBank = 14;
-
+	//throw error if configurations are unsuccessful
 	if (HAL_CAN_ConfigFilter(&hcan1, &sFilterConfig) != HAL_OK){
 	    /* Filter configuration Error */
 	  Error_Handler();
 	}
+	// start the CAN perpherial via HAL
 	HAL_CAN_Start(&hcan1);
     if (HAL_CAN_ActivateNotification(&hcan1, CAN_IT_RX_FIFO0_MSG_PENDING) != HAL_OK){
 	/* Notification Error */
@@ -77,7 +81,7 @@ void can_Init(void){
   }
 }
 
-//thread
+//send can frame function
 void canSend(void){
 	txCAN.ExtId = txAddress;
 	txCAN.DLC = 2;
@@ -103,6 +107,7 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan){
 //	  decodedTemperature = temperatureDecode(temp.RxData[1], temp.RxData[0]);
 ////	  osMessageQueuePut(canmsg_rx, &decodedTemperature, 0, 0);
 //  }
+  //decode the specified hex bytes that contain motor temperature
   if (RxHeader.ExtId == temperatureAddress){
 	  decodedTemperature = temperatureDecode(RxData[5], RxData[4]);
 //	  osMessageQueuePut(canmsg_rx, &decodedTemperature, 0, 0);

@@ -153,7 +153,7 @@ int main(void)
   defaultTaskHandle = osThreadNew(StartDefaultTask, NULL, &defaultTask_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
-  /* add threads, ... */
+  /* Initialize user threads ... */
   ADC_Init(&hadc1);
   can_Init();
   state_machine_init();

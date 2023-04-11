@@ -1163,11 +1163,11 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc){
  8000e10:	20000220 	.word	0x20000220
 
 08000e14 <temperatureDecode>:
-//}canMsg;
 
 //int temp;
 int motorTorqueHighFault = 0x00, motorTorqueLowFault = 0x00, decodedTemperature;
 
+//grab the hex temperature codes from the CAN frame and convert it into decimal values
 int temperatureDecode (int high, int low){
  8000e14:	b480      	push	{r7}
  8000e16:	b085      	sub	sp, #20
@@ -1197,11 +1197,11 @@ int temperatureDecode (int high, int low){
  8000e44:	66666667 	.word	0x66666667
 
 08000e48 <can_Init>:
-        hex_num >>= 4;
     }
     return reversed_num;
 }
 
+//initialize CAN filters for TX/RX operations
 void can_Init(void){
  8000e48:	b580      	push	{r7, lr}
  8000e4a:	b08a      	sub	sp, #40	; 0x28
@@ -1250,7 +1250,7 @@ void can_Init(void){
 	sFilterConfig.SlaveStartFilterBank = 14;
  8000e84:	230e      	movs	r3, #14
  8000e86:	627b      	str	r3, [r7, #36]	; 0x24
-
+	//throw error if configurations are unsuccessful
 	if (HAL_CAN_ConfigFilter(&hcan1, &sFilterConfig) != HAL_OK){
  8000e88:	463b      	mov	r3, r7
  8000e8a:	4619      	mov	r1, r3
@@ -1263,6 +1263,7 @@ void can_Init(void){
 	  Error_Handler();
  8000e98:	f000 fdf8 	bl	8001a8c <Error_Handler>
 	}
+	// start the CAN perpherial via HAL
 	HAL_CAN_Start(&hcan1);
  8000e9c:	4808      	ldr	r0, [pc, #32]	; (8000ec0 <can_Init+0x78>)
  8000e9e:	f002 fef0 	bl	8003c82 <HAL_CAN_Start>
@@ -1287,7 +1288,7 @@ void can_Init(void){
 
 08000ec4 <canSend>:
 
-//thread
+//send can frame function
 void canSend(void){
  8000ec4:	b580      	push	{r7, lr}
  8000ec6:	af00      	add	r7, sp, #0
@@ -1354,11 +1355,11 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan){
 	/* Reception Error */
 	Error_Handler();
  8000f2a:	f000 fdaf 	bl	8001a8c <Error_Handler>
-  }
 //  if (temp.RxHeader.ExtId == temperatureAddress) {
 //	  decodedTemperature = temperatureDecode(temp.RxData[1], temp.RxData[0]);
 ////	  osMessageQueuePut(canmsg_rx, &decodedTemperature, 0, 0);
 //  }
+  //decode the specified hex bytes that contain motor temperature
   if (RxHeader.ExtId == temperatureAddress){
  8000f2e:	4b0b      	ldr	r3, [pc, #44]	; (8000f5c <HAL_CAN_RxFifo0MsgPendingCallback+0x4c>)
  8000f30:	685b      	ldr	r3, [r3, #4]
@@ -1392,9 +1393,9 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan){
  8000f60:	200002c4 	.word	0x200002c4
 
 08000f64 <check_error>:
-//define variables
 const char errlog[] = "ErrorLog.txt";
 
+//initialize controller function
 void controller_state_machine(void *args);
 
 static inline bool check_error(float APPS_VPA, float APPS_VPA2, float BSE){
@@ -1405,7 +1406,7 @@ static inline bool check_error(float APPS_VPA, float APPS_VPA2, float BSE){
  8000f6e:	edc7 0a02 	vstr	s1, [r7, #8]
  8000f72:	ed87 1a01 	vstr	s2, [r7, #4]
 	//| (APPS_VPA2 >4.5) | (BSE<0.5) | (APPS_VPA2 <0.5) |
-	return ((APPS_VPA<=0.5) | (APPS_VPA>=4.5) | (BSE>4.5));
+	return ((APPS_VPA<=0.5) | (APPS_VPA>=4.5) | (BSE>4.5) );
  8000f76:	edd7 7a03 	vldr	s15, [r7, #12]
  8000f7a:	eeb6 7a00 	vmov.f32	s14, #96	; 0x3f000000  0.5
  8000f7e:	eef4 7ac7 	vcmpe.f32	s15, s14
@@ -1448,6 +1449,7 @@ static inline bool check_error(float APPS_VPA, float APPS_VPA2, float BSE){
 
 08000fdc <state_machine_init>:
 
+//dump main logic into a thread
 void state_machine_init(void){
  8000fdc:	b580      	push	{r7, lr}
  8000fde:	af00      	add	r7, sp, #0
@@ -1469,6 +1471,7 @@ void state_machine_init(void){
 
 08001004 <update_values>:
 
+//update collected adc values into our variables
 void update_values(float *APPS_VPA, float *APPS_VPA2, float * BSE){
  8001004:	b480      	push	{r7}
  8001006:	b085      	sub	sp, #20
@@ -1515,34 +1518,28 @@ void controller_state_machine(void *args){
  8001052:	f8c7 30e4 	str.w	r3, [r7, #228]	; 0xe4
  8001056:	f04f 0300 	mov.w	r3, #0
  800105a:	f8c7 30e0 	str.w	r3, [r7, #224]	; 0xe0
-//	uint8_t sd_status = BSP_SD_IsDetected();
 	char buffer[120];
 	char buffer2[90];
-	//dummy var for storing motor temp
 	uint32_t startTimeStamp = osKernelGetSysTimerCount();
  800105e:	f00c fd07 	bl	800da70 <osKernelGetSysTimerCount>
  8001062:	f8c7 00f4 	str.w	r0, [r7, #244]	; 0xf4
-//	if (sd_status == SD_PRESENT) {
-//		SD_init();
-//	}
 	  for(;;)
 	  {
+		  //acquire ADC collection function semaphore
 		  osSemaphoreAcquire(ADC_semHandle, 1);
  8001066:	4b39      	ldr	r3, [pc, #228]	; (800114c <controller_state_machine+0x114>)
  8001068:	681b      	ldr	r3, [r3, #0]
  800106a:	2101      	movs	r1, #1
  800106c:	4618      	mov	r0, r3
  800106e:	f00c ffa3 	bl	800dfb8 <osSemaphoreAcquire>
-//		  if ((sd_status != BSP_SD_IsDetected()) && (BSP_SD_IsDetected() == SD_PRESENT)){
-//			  SD_init();
-//		  }
-//		  sd_status = BSP_SD_IsDetected();
+		  //access the ADC variables and update the values into our variables
 		  update_values(&APPS_VPA, &APPS_VPA2, &BSE);
  8001072:	f107 02e0 	add.w	r2, r7, #224	; 0xe0
  8001076:	f107 01e4 	add.w	r1, r7, #228	; 0xe4
  800107a:	f107 03e8 	add.w	r3, r7, #232	; 0xe8
  800107e:	4618      	mov	r0, r3
  8001080:	f7ff ffc0 	bl	8001004 <update_values>
+		  //initialize write buffer for the SD card, size is arbitrary just be large enough to contain the chars
 		  int n = snprintf(buffer, sizeof(buffer), "Error log: APPS Value is %1.2f, APPS2 Value is %1.2f, BSE Value is %1.2f, Setting motor torque to 0Nm; \n", APPS_VPA, APPS_VPA2, BSE);
  8001084:	f8d7 30e8 	ldr.w	r3, [r7, #232]	; 0xe8
  8001088:	4618      	mov	r0, r3
@@ -1575,7 +1572,7 @@ void controller_state_machine(void *args){
  80010d4:	215a      	movs	r1, #90	; 0x5a
  80010d6:	f011 fb79 	bl	80127cc <sniprintf>
  80010da:	f8c7 00ec 	str.w	r0, [r7, #236]	; 0xec
-		  //maybe can replace with another while 1 looperoni
+		  //checking for error condition in APPS and BSE values
 		  if (check_error(APPS_VPA, APPS_VPA2, BSE)){
  80010de:	edd7 7a3a 	vldr	s15, [r7, #232]	; 0xe8
  80010e2:	ed97 7a39 	vldr	s14, [r7, #228]	; 0xe4
@@ -1587,6 +1584,7 @@ void controller_state_machine(void *args){
  80010fa:	4603      	mov	r3, r0
  80010fc:	2b00      	cmp	r3, #0
  80010fe:	d012      	beq.n	8001126 <controller_state_machine+0xee>
+			  //if erroneous voltage persists past 100ms, write the error log
 			  if(osKernelGetSysTimerCount() - startTimeStamp >= 100) {
  8001100:	f00c fcb6 	bl	800da70 <osKernelGetSysTimerCount>
  8001104:	4602      	mov	r2, r0
@@ -1594,8 +1592,6 @@ void controller_state_machine(void *args){
  800110a:	1ad3      	subs	r3, r2, r3
  800110c:	2b63      	cmp	r3, #99	; 0x63
  800110e:	d90e      	bls.n	800112e <controller_state_machine+0xf6>
-				  //send error frame
-//				  if (sd_status == SD_PRESENT) {
 				  	  canSend();
  8001110:	f7ff fed8 	bl	8000ec4 <canSend>
 					  SD_process(errlog, buffer, n);
@@ -1606,13 +1602,15 @@ void controller_state_machine(void *args){
  8001120:	f000 fce0 	bl	8001ae4 <SD_process>
  8001124:	e003      	b.n	800112e <controller_state_machine+0xf6>
 				  }
-//			  }
 		  }
+		  //otherwise restart timer
 		  else {
 			  startTimeStamp = osKernelGetSysTimerCount();
  8001126:	f00c fca3 	bl	800da70 <osKernelGetSysTimerCount>
  800112a:	f8c7 00f4 	str.w	r0, [r7, #244]	; 0xf4
 		  }
+		  //if received motor temperature is >the temp we want,
+		  //send can frame to reduce speed
 		  if (decodedTemperature>120){
  800112e:	4b09      	ldr	r3, [pc, #36]	; (8001154 <controller_state_machine+0x11c>)
  8001130:	681b      	ldr	r3, [r3, #0]
@@ -1696,7 +1694,7 @@ int main(void)
  8001196:	6013      	str	r3, [r2, #0]
 
   /* USER CODE BEGIN RTOS_THREADS */
-  /* add threads, ... */
+  /* Initialize user threads ... */
   ADC_Init(&hadc1);
  8001198:	4807      	ldr	r0, [pc, #28]	; (80011b8 <main+0x58>)
  800119a:	f7ff fdc3 	bl	8000d24 <ADC_Init>
@@ -3260,6 +3258,7 @@ void SD_init(void){
  8001a98:	b580      	push	{r7, lr}
  8001a9a:	b082      	sub	sp, #8
  8001a9c:	af02      	add	r7, sp, #8
+	//Mounts the SD card. If cannot mount SD card, throw error
 	if(f_mount(&SDFatFS, (TCHAR const*)SDPath, 0) != FR_OK){
  8001a9e:	2200      	movs	r2, #0
  8001aa0:	490d      	ldr	r1, [pc, #52]	; (8001ad8 <SD_init+0x40>)
@@ -3310,7 +3309,6 @@ void SD_process(const char *filename, void *buffer, int length){
  8001aec:	60b9      	str	r1, [r7, #8]
  8001aee:	607a      	str	r2, [r7, #4]
 			//Open file for writing (Create)
-//			if(f_open(&SDFile, filename, FA_CREATE_ALWAYS | FA_WRITE) != FR_OK){
 			if(f_open(&SDFile, filename, FA_OPEN_APPEND | FA_WRITE) != FR_OK){
  8001af0:	2232      	movs	r2, #50	; 0x32
  8001af2:	68f9      	ldr	r1, [r7, #12]
@@ -3321,11 +3319,11 @@ void SD_process(const char *filename, void *buffer, int length){
  8001afe:	d002      	beq.n	8001b06 <SD_process+0x22>
 				Error_Handler();
  8001b00:	f7ff ffc4 	bl	8001a8c <Error_Handler>
+				else{
 					f_close(&SDFile);
 				}
 			}
 			//create if condition to check if buffer is null/bad function calls
-//	f_mount(&SDFatFS, (TCHAR const*)NULL, 0);
 }
  8001b04:	e017      	b.n	8001b36 <SD_process+0x52>
 				res = f_write(&SDFile, buffer, length, (void *)&byteswritten);
