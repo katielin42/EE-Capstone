@@ -70,3 +70,8 @@ If one wishes to modify the firmware, please download STM32CubeIDE and clone thi
 + If SD card logs aren't removed after powering off the board, they will be wiped at the next instance the board is powered up. 
 + SD card cannot be removed in the middle of operation. 
 + SD card might die due to too many writes, just replace a new micro SD card if you notice the EVCU firmware behaving weirdly with the SD card. 
+
+
+**The code also works with the dev board. However, several changes need to be made in the .ioc**
++ uSD_detect pin needs to be changed from PC7 to PA5. 
++ Clock configurations need to be set: HSE 
