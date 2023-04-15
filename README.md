@@ -37,3 +37,36 @@ Design created by: Katie Lin and Thomas Osei-Bonsu Jr.
 
 
 ```controller_task.c && controller_task.h```: a giant state machine with cases, interrupts...etc that links all the tasks together. Based on the inputs and outputs of the task files described above, decide the next steps of what the MCU needs to do, usually sending CAN messages and error logging upon error detection. 
+
+
+##User Manual (for EVCU PCB)
+
+![image](https://user-images.githubusercontent.com/47064869/232248181-f159828e-b120-455e-b322-5c2face49e1b.png)
+
+Above is a physical image of the EVCU PCB. 
+
+**Hardware Setup**
+
+The setup for EVCU PCB should ideally be done after reviewing the schematic and layout. For the EVCU PCB, provide a 12v DC input at J2 and ground signal. 
+
+
+At J3, the APPS VPA/VPA2 and BSE sensor signal inputs to the ADC are labelled. Please consult the accelerator pedal datasheets to hook the APPS pedal/BSE sensors up correctly. 
+
+
+The J5 DB9 connector is the CAN connector that can be hooked up to the motor controller. Our CAN bus speed is 0.5Mbit/second, so configure the motor controller accordingly. 
+
+
+Before powering the board up, please ensure a microSD card is inserted and the sensors are powered and operational and connected to the analog inputs of this PCB. The current firmware will start running once the board is powered up. If any firmware errors occur, disconnect the PCB from power, ensure the hardware components are all connected, and reconnect the PCB to power. 
+
+
+**Firmware Setup**
+
+If one wishes to modify the firmware, please download STM32CubeIDE and clone this repository. Then, hook up serial wire debug pins in J1 to a debug programmer. These configurations can be found online. Then, clicking on the run or debug button will flash the updated code onto the EVCU PCB MCU. 
+
++ If the error conditions for the analog APPS/BSE sensors need to be modified, they can be changed in controller_task.c under the function check_error_condition(). Currently the code checks for APPS/BSE <0.5 or >4.5V as specified by the rules, but I believe the datasheet for one of the sensors says otherwise. 
++ If any CAN address/settings need to be modified, they can be changed in CAN_task.c
+
+**Caveats**
++ If SD card logs aren't removed after powering off the board, they will be wiped at the next instance the board is powered up. 
++ SD card cannot be removed in the middle of operation. 
++ SD card might die due to too many writes, just replace a new micro SD card if you notice the EVCU firmware behaving weirdly with the SD card. 
