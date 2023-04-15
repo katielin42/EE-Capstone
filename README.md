@@ -39,7 +39,7 @@ Design created by: Katie Lin and Thomas Osei-Bonsu Jr.
 ```controller_task.c && controller_task.h```: a giant state machine with cases, interrupts...etc that links all the tasks together. Based on the inputs and outputs of the task files described above, decide the next steps of what the MCU needs to do, usually sending CAN messages and error logging upon error detection. 
 
 
-##User Manual (for EVCU PCB)
+## User Manual (for EVCU PCB)
 
 ![image](https://user-images.githubusercontent.com/47064869/232248181-f159828e-b120-455e-b322-5c2face49e1b.png)
 
