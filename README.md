@@ -76,3 +76,5 @@ If one wishes to modify the firmware, please download STM32CubeIDE and clone thi
 + uSD_detect pin needs to be changed from PC7 to PA5. 
 + Clock configurations need to be set: HSE from BYPASS to crystal/ceramic oscillator, and disable LSE. 
 + Connect the CAN transciever module to the dev board via the USB breakout board, connect to the non ST-Link microUSB input on the dev board (there are only two). 
+
+Finally, save those changes to the .ioc file, close it, and flash the code onto the dev board. 
