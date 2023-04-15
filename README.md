@@ -47,7 +47,7 @@ Above is a physical image of the EVCU PCB.
 
 **Hardware Setup**
 
-The setup for EVCU PCB should ideally be done after reviewing the schematic and layout. For the EVCU PCB, provide a 12v DC input at J2 and ground signal. 
+The setup for EVCU PCB should be done after reviewing the schematic and layout, which can be found under Hardware Design/EVCU Rev B/EVCU. For the EVCU PCB, provide a 12v DC input at J2 and ground signal. 
 
 
 At J3, the APPS VPA/VPA2 and BSE sensor signal inputs to the ADC are labelled. Please consult the accelerator pedal datasheets to hook the APPS pedal/BSE sensors up correctly. 
@@ -61,7 +61,7 @@ Before powering the board up, please ensure a microSD card is inserted and the s
 
 **Firmware Setup**
 
-If one wishes to modify the firmware, please download STM32CubeIDE and clone this repository. Then, hook up serial wire debug pins in J1 to a debug programmer. These configurations can be found online. Then, clicking on the run or debug button will flash the updated code onto the EVCU PCB MCU. 
+If one wishes to modify the firmware, please download STM32CubeIDE and clone this repository. The firmware project name in this repository is STM32_Test. Then, hook up serial wire debug pins in J1 to a debug programmer. These configurations can be found online. Then, clicking on the run or debug button will flash the updated code onto the EVCU PCB MCU. 
 
 + If the error conditions for the analog APPS/BSE sensors need to be modified, they can be changed in controller_task.c under the function check_error_condition(). Currently the code checks for APPS/BSE <0.5 or >4.5V as specified by the rules, but I believe the datasheet for one of the sensors says otherwise. 
 + If any CAN address/settings need to be modified, they can be changed in CAN_task.c
